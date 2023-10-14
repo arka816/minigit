@@ -4,7 +4,6 @@
 
 __author__ = 'Arka'
 
-from tabulate import tabulate
 
 from diff import Diff, Diffs
 from constants import EQUAL_OP, DELETION_OP, INSERTION_OP
@@ -33,8 +32,9 @@ class Myers:
             self.edits.append(diff)
 
         self.diffs = Diffs(self.edits)
+        self.diffs.merge_char_ops()
 
-        print(tabulate(self.edits, headers={'type': 'op', 'oldchar':  'old', 'newchar': 'new'}))
+        print(self.diffs)
 
     def shortest_edit(self) -> list:
         '''
