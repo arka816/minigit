@@ -28,6 +28,14 @@ class Diff:
         if new_str is not None:
             self.len = len(new_str)
 
+    @property
+    def diff_str(self):
+        if self.op == DELETION_OP:
+            return self.old_str
+        else:
+            return self.new_str
+        
+
     def __iter__(self):
         for each in self.__dict__.values():
             yield each
@@ -77,6 +85,7 @@ class Diff:
             self.new_str = s
 
 
+
 class Diffs:
     '''
         implementation of list of character-level diffs
@@ -112,6 +121,8 @@ class Diffs:
     def cleanup_merge(self) -> None:
         '''
             reorder and merge like edit sections
+
+            works at all levels - character/word/line
         '''
         self.diffs.append(Diff(EQUAL_OP, '', ''))
 
@@ -159,9 +170,8 @@ class Diffs:
                             Diff(INSERTION_OP, None, ins_text)
                         ]
 
-                    i -= (ins_count +  del_count - 1)
+                    i -= (ins_count + del_count - 1)
 
-                    # TODO: findout why this
                     if del_count > 0:
                         i += 1
                     if ins_count > 0:
@@ -175,3 +185,51 @@ class Diffs:
 
                 del_count, ins_count = 0, 0
                 del_text, ins_text = '', ''
+
+        self.transpose_chaffs()
+
+    def transpose_chaffs(self):
+        '''
+            A<ins>BA</ins>C -> <ins>AB</ins>AC  
+            A<ins>BC</ins>B -> AB<ins>CB</ins>
+        '''
+        i = 1
+        change = False
+
+        while i < len(self.diffs) - 1:
+            if self.diffs[i-1].op == EQUAL_OP and self.diffs[i+1].op == EQUAL_OP:
+                if self.diffs[i].diff_str.endswith(self.diffs[i-1].diff_str):
+                    self.diffs[i].update_diff(
+                        Diff(
+                            self.diffs[i].op, 
+                            self.diffs[i-1].diff_str + self.diffs[i].diff_str[:len(self.diffs[i-1].diff_str)]
+                        )
+                    )
+                    self.diffs[i+1].update_diff(
+                        Diff(
+                            self.diffs[i+1].op,
+                            self.diffs[i-1].diff_str + self.diffs[i+1].diff_str
+                        )
+                    )
+                    del self.diffs[i-1]
+                    change = True
+                elif self.diffs[i].diff_str.startswith(self.diffs[i+1].diff_str):
+                    self.diffs[i-1].update_diff(
+                        Diff(
+                            self.diffs[i-1].op,
+                            self.diffs[i-1].diff_str + self.diffs[i+1].diff_str
+                        )
+                    )
+                    self.diffs[i].update_diff(
+                        Diff(
+                            self.diffs[i].op,
+                            self.diffs[i].diff_str[self.diffs[i+1].diff_str:] + self.diffs[i+1].diff_str
+                        )
+                    )
+                    del self.diffs[i+1]
+                    change = True
+            i += 1
+
+        if change:
+            self.cleanup_merge()
+
