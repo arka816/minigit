@@ -32,7 +32,15 @@ class Myers:
             self.edits.append(diff)
 
         self.diffs = Diffs(self.edits)
-        self.diffs.merge_char_ops()
+
+        self.diffs.cleanup_merge()
+        print("round 1 cleanup merge")
+
+        self.diffs.cleanup_semantic()
+        print("semantic cleanup")
+
+        self.diffs.cleanup_merge()
+        print("round 2 cleanup merge")
 
         print(self.diffs)
 
@@ -119,4 +127,13 @@ class Myers:
 
 
 if __name__ == "__main__":
-    Myers('ABCABBA', 'CBABAC')
+    text_1 = 'I am the very model of a modern major general.'
+    text_2 = '`Twas brillig, and the slithy toves did gyre and gimble in the wabe.'
+
+    text_1 = 'Hovering'
+    text_2 = 'My government'
+
+    text_1 = 'It was a dark and stormy night.'
+    text_2 = 'The black can in the cupboard.'
+
+    Myers(text_1, text_2)
