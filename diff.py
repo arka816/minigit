@@ -17,6 +17,11 @@ class Diff:
         implementation of character-level diff
     '''
     def __init__(self, op: str, old_str: str, new_str: str) -> None:
+        '''
+            @param: op - diff operation, can be one of '=' / '+' / '-'
+            @param: old_str - string in initial text that was deleted
+            @param: new_str - string in final text that is inserted
+        '''
         assert old_str is not None or new_str is not None or (len(old_str) == len(new_str))
         assert op in OPS
 
@@ -36,7 +41,7 @@ class Diff:
             return self.new_str
         
     @diff_str.setter
-    def diff_str(self, s):
+    def diff_str(self, s : str) -> None:
         if self.op == DELETION_OP:
             self.old_str = s
         elif self.op == INSERTION_OP:
@@ -46,7 +51,6 @@ class Diff:
             self.new_str = s
         self.len = len(s)
         
-
     def __iter__(self):
         for each in self.__dict__.values():
             yield each
@@ -54,6 +58,8 @@ class Diff:
     def prepend_diff(self, d : "Diff") -> None:
         '''
             prepends new diff to beginning of self
+
+            @param: d - diff object to be prepended
         '''
         assert self.op == d.op
 
@@ -71,6 +77,8 @@ class Diff:
     def append_diff(self, d : "Diff") -> None:
         '''
             appends new diff to end of self
+
+            @param: diff object to be appended
         '''
         assert self.op == d.op
 
@@ -86,6 +94,12 @@ class Diff:
             self.len += len(d.old_str)
 
     def update_diff(self, op : str, s : str) -> None:
+        '''
+            update this diff object
+
+            @param: op - diff operation, can be one of '=' / '+' / '-'
+            @param: s - updated diff string (old or new string according to op)
+        '''
         self.op = op
         if self.op == DELETION_OP:
             self.old_str = s
@@ -99,15 +113,30 @@ class Diff:
 
 class Diffs:
     '''
-        implementation of list of character-level diffs
+        implementation of list of character-level / word-level / line-level diffs
     '''
-    def __init__(self, diffs : list[Diff]) -> None:
+    def __init__(self, diffs : list[Diff], level : str = 'c') -> None:
+        '''
+            @param: diffs - list of diff objects
+            @param: level - level of text at which diff works ('c' - character / 'w' - word / 'l' - level)
+        '''
         self.diffs = diffs
+        self.level = level
+
+    def cleanup(self) -> None:
+        '''
+            run semantic cleanup on character level diffs
+            for word-level or line-level diffs no cleanup is required
+        '''
+        if self.level == 'c':
+            self.cleanup_merge()
+            self.cleanup_semantic()
+            self.cleanup_merge()
 
     def __repr__(self) -> str:
         return tabulate(self.diffs)
 
-    def merge_char_ops(self):
+    def merge_char_ops(self) -> None:
         '''
             merge adjacent segments of similar character level operations
             to form similar string level operations
@@ -201,7 +230,7 @@ class Diffs:
 
         self.transpose_chaffs()
 
-    def transpose_chaffs(self):
+    def transpose_chaffs(self) -> None:
         '''
             A<ins>BA</ins>C -> <ins>AB</ins>AC  
             A<ins>BC</ins>B -> AB<ins>CB</ins>
@@ -230,7 +259,7 @@ class Diffs:
         if change:
             self.cleanup_merge()
 
-    def cleanup_semantic(self):
+    def cleanup_semantic(self) -> None:
         '''
             semantic cleanup of the diff improves human readability
 
@@ -280,4 +309,3 @@ class Diffs:
 
         if changes:
             self.cleanup_semantic()
-

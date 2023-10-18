@@ -1,5 +1,6 @@
 '''
     implementation of Myers diff algorithm
+    for character level diff
 '''
 
 __author__ = 'Arka'
@@ -15,6 +16,10 @@ class Myers:
         produces a patch to convert string defined by s1 to string defined by s2 
     '''
     def __init__(self, s1 : str, s2 : str) -> None:
+        '''
+            @input: s1 - initial text
+            @input: s2 - final text
+        '''
         self.s1, self.s2 = s1, s2
         self.edit_graph_trace = self.shortest_edit()
 
@@ -33,14 +38,7 @@ class Myers:
 
         self.diffs = Diffs(self.edits)
 
-        self.diffs.cleanup_merge()
-        print("round 1 cleanup merge")
-
-        self.diffs.cleanup_semantic()
-        print("semantic cleanup")
-
-        self.diffs.cleanup_merge()
-        print("round 2 cleanup merge")
+        self.diffs.cleanup()
 
         print(self.diffs)
 
@@ -48,8 +46,7 @@ class Myers:
         '''
             constructs the k-v graph
 
-            input: None
-            returns: list containing all the levels of the graph
+            @returns: list containing all the levels of the graph
         '''
         n1, n2 = len(self.s1), len(self.s2)
 
@@ -90,8 +87,7 @@ class Myers:
         '''
             backtrack through the edit graph to get a list of patches
 
-            input: None
-            returns: list of patches
+            @returns: list of patches
         '''
         n1, n2 = len(self.s1), len(self.s2)
 
@@ -135,5 +131,14 @@ if __name__ == "__main__":
 
     text_1 = 'It was a dark and stormy night.'
     text_2 = 'The black can in the cupboard.'
+
+    text_1 = '''I am the very model of a modern Major-General,
+            I've information vegetable, animal, and mineral,
+            I know the kings of England, and I quote the fights historical,
+            From Marathon to Waterloo, in order categorical.'''
+    text_2 = '''I am the very model of a cartoon individual,
+            My animation's comical, unusual, and whimsical,
+            I'm quite adept at funny gags, comedic theory I have read,
+            From wicked puns and stupid jokes to anvils that drop on your head.'''
 
     Myers(text_1, text_2)
