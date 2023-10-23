@@ -3,6 +3,7 @@
 
     handles operations
         - create
+        - index 
         - sync
 
 '''
